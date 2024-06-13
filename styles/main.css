@@ -45,7 +45,7 @@ tr:nth-child(-n+57) th:nth-child(10) {
     height: 100vh; /* Makes sure the container takes up the full viewport height */
 }
 
-.image-container img2 {
+.image-container2 img {
     color: #929985;
     width: auto; /* keeps image width proportional */
     height: 500px; /* or any desired height */
