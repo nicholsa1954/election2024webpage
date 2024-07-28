@@ -19,16 +19,62 @@
             <p>"Biden Expected Votes" for 2024 is 84% of Biden's 2020 votes.</p>
             <p>"Biden Committed Votes" is zero at the moment.  The intent is to make this quantity update dynamically in future versions.</p>
             <p>"Effort Required" is "Win Number" minus "Expected Votes"</p>
-            <p>"Effort Remaining" is "Effort Required" minus "Committed Votes" (so currently identical to "Effort Required").</p>      
+            <p>"Effort Remaining" is "Effort Required" minus "Committed Votes" (so currently identical to "Effort Required").</p>  
+            <pre><code>
+                def ComputeEffortRequired(df, win_factor = 1.10, coefficient_2024 = .84):
+                    df['WinNumber2024'] = df['Biden20'] * win_factor
+                    df['Expected2024'] = df['Biden20'] * coefficient_2024
+                    df['VotesCommitted'] = 0
+                    
+                    df.fillna({'WinNumber2024': df['WinNumber2024'].mean(), 'Expected2024': df['Expected2024'].mean()}, inplace=True)
+                    df['WinNumber2024'] = df['WinNumber2024'].astype(int)
+                    df['Expected2024'] = df['Expected2024'].astype(int)
+                    
+                    df['EffortRequired'] = (df['WinNumber2024'] - df['Expected2024'])
+                    df['EffortRemaining'] = df['EffortRequired'] - df['VotesCommitted']
+                    
+                    return df
+            </code></pre>    
         </div>
         <div class = "content">
             <h2>Current Version Changes:</h2>
+            <h4>Version of 7/28/24</h4>
             <p><ul>
-                <li>Updated the "Effort Remaining" metric, see above.</li>
+                <li>"Effort Remaining" metric is same as previous version, code is above.</li>
+                <li>Only Priority 1 and 2 wards are outlined (in red) and colored for effort remaining.  Other wards are not colored.</li>
+                <li>"Effort Remaining" colorscale remains as before.</li>
+            </ul></p>
+            <h4>Version of 6/17/24</h4>
+            <p><ul>
+                <li>Updated the "Effort Remaining" metric.</li>
                 <li>"Effort Remaining" tooltip only shows on Priority 1, 2, B (Spanish language), and C (control) wards.</li>
                 <li>Changed the colorscale for "Effort Remaining" metric.</li>
                 <li>High-priority wards outlined in red, low-priority wards in black.</li>
             </ul></p>
+        </div>
+        <div class = 'content'>
+            <h2>Milwaukee and Suburban Wards by Turf and Effort Remaining</h2>
+            "html_image\Milwaukee  County Turf C Effort Remaining by Ward.html"
+
+            <div class="iframe-container">
+                <iframe src="./html_image/Milwaukee County Turf A Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "900px" width = "800px" class="embedded-page"></iframe>
+            </div>
+
+            <div class="iframe-container">
+                <iframe src="./html_image/Milwaukee County Turf B Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "700px" width = "1000px" class="embedded-page"></iframe>   
+            </div>
+
+            <div class="iframe-container">
+                <iframe src="./html_image/Milwaukee County Turf C Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "700px" width = "1000px" class="embedded-page"></iframe>
+            </div>
+
+            <div class="iframe-container">
+                <iframe src="./html_image/Milwaukee County Turf D Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "700px" width = "1000px" class="embedded-page"></iframe>
+            </div>
+
+            <div class="iframe-container">
+                <iframe src="./html_image/Milwaukee County Turf E Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "1100px" width = "1000px" class="embedded-page"></iframe>
+            </div>
         </div>
         <div class = 'content'> 
             <h2>Target Cities by Ward -- Effort Remaining</h2>
@@ -52,7 +98,6 @@
             <div class="iframe-container">
                 <iframe src="./html_image/Brown Deer Effort Remaining by Ward.html" frameborder="0" scrolling = "no" height = "720px" width = "1200px" class="embedded-page"></iframe>
             </div>            
-
         </div>
     
         <div class = 'content'> 
