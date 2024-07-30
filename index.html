@@ -15,29 +15,52 @@
     <main>
         <div class="content">
             <h2>The "Effort Remaining" Metric</h2>
-            <p>"Win Number" is 110% of Biden's votes in the 2020 election.</p> 
-            <p>"Biden Expected Votes" for 2024 is 84% of Biden's 2020 votes.</p>
-            <p>"Biden Committed Votes" is zero at the moment.  The intent is to make this quantity update dynamically in future versions.</p>
-            <p>"Effort Required" is "Win Number" minus "Expected Votes"</p>
-            <p>"Effort Remaining" is "Effort Required" minus "Committed Votes" (so currently identical to "Effort Required").</p>  
+            <p><ul>
+                <li>"HarrisGoal2024" is 110% of Biden's votes in the 2020 election.</li> 
+                <li>"HarrisMinimum2024" is the ratio of Evers 2022 votes / Evers 2018 votes * Biden's 2020 votes.</li>
+                <li>"Votes Committed" is voter responses on the doors.  This is zero at the moment.  The intent is to make this quantity update dynamically in future versions.</li>
+                <li>"Votes Expected" is the number of voters who voted Democratic in the last 4 of 4 elections. This is zero at the moment until we fill in the spreadsheet.</li>
+                <li>"Effort Remaining to Minimum" is "HarrisExpected2024" minus ("Votes Committed" + "Votes Expected").</li>  
+                <li>"Effort Remaining to Goal" is "HarrisGoal2024" minus ("Votes Committed" + "Votes Expected").</li>
+            </ul></p>           
             <pre><code>
                 def ComputeEffortRequired(df, win_factor = 1.10, coefficient_2024 = .84):
-                    df['WinNumber2024'] = df['Biden20'] * win_factor
-                    df['Expected2024'] = df['Biden20'] * coefficient_2024
+                    ### fill in missing values in these columns with the mean of the others
+                    df.fillna({'Biden20': df['Biden20'].mean(), 
+                            'Evers18': df['Evers18'].mean(), 
+                            'Evers22': df['Evers22'].mean()}, inplace=True)
+                    
+                    df['HarrisGoal2024'] = (win_factor * df['Biden20']).astype(int)
+                    
+                    try:
+                        df['HarrisMinimum2024'] = (df['Evers22'] / df['Evers18'] * df['Biden20']).astype(int)
+                    except:
+                        print (df['Evers22'] , df['Evers18'] , df['Biden20'])
+                    
+                    ### actual voter commitments from door knocks
                     df['VotesCommitted'] = 0
                     
-                    df.fillna({'WinNumber2024': df['WinNumber2024'].mean(), 'Expected2024': df['Expected2024'].mean()}, inplace=True)
-                    df['WinNumber2024'] = df['WinNumber2024'].astype(int)
-                    df['Expected2024'] = df['Expected2024'].astype(int)
+                    ### the existing higly-committed highly-motivatd voters
+                    ### currently all zeros until we fill in the values on the spreadsheet
+                    df['VotesExpected'] = df['IDs_4_4'].fillna(0).astype(int)
                     
-                    df['EffortRequired'] = (df['WinNumber2024'] - df['Expected2024'])
-                    df['EffortRemaining'] = df['EffortRequired'] - df['VotesCommitted']
+                    ## compute the "effort remaining values
+                    df['EffortRemainingToMinimum'] = (df['HarrisMinimum2024'] - (df['VotesCommitted'] + df['VotesExpected']))
+                    df['EffortRemainingToGoal'] = df['HarrisGoal2024'] - (df['VotesCommitted'] + df['VotesExpected'])
                     
                     return df
             </code></pre>    
         </div>
         <div class = "content">
             <h2>Current Version Changes:</h2>
+            <h4>Version of 7/30/24</h4>
+            <p><ul>
+                <li>"Effort Remaining" metric is updated per our conversation of 7/29/24 to reflect expectations for Kamala Harris.</li>
+                <li>Billboard is updated to display new "Effort Remaining" information.</li>
+                <li>Colorbars for each turf use county-wide max and min values for effort remaining, to allow comparisons between turfs. </li>
+                <li>Images for turfs in Brown and Racine Counties are added.</li>
+                <li>Static images showing priority 1 and 2 wards per turf are added.</li>
+            </ul></p>
             <h4>Version of 7/28/24</h4>
             <p><ul>
                 <li>"Effort Remaining" metric is same as previous version, code is above.</li>
