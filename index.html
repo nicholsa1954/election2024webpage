@@ -17,48 +17,69 @@
             <h2>The "Effort Remaining" Metric</h2>
             <h4>Computing the "Effort Remaining":</h4>
             <pre><code>
-                def ComputeEffortRequired(df, win_factor = 1.10, coefficient_2024 = .84):
-                ### fill in missing values in these columns 
-                ### with the mean of the other values in that column
-                df.fillna({'Biden20': df['Biden20'].mean(), 
-                           'Evers18': df['Evers18'].mean(), 
-                           'Evers22': df['Evers22'].mean(),
-                           'Clinton16': df['Clinton16'].mean(),
-                           'Trump20': df['Trump20'].mean(),
-                           'ModeledIDs': 0,  # fill im missing values with 0
-                           'NewIDs': 0}, inplace=True)
-                
-                supporter_goal = 0
-                g1 = 0.0
-                
-                for row in df.itertuples():
-                    # supporter goal is 110% of Biden's 2020 vote
-                    # incremented by half the loss, if any, from (Evers22 - Evers18)/Evers18
-                    if pd.isnull(row.SupporterGoal) or row.SupporterGoal == 0:
-                        try:
-                            g1 = (row.Evers22 - row.Evers18) / (2.0 * row.Evers18)
-                        except ZeroDivisionError:
-                            g1 = win_factor
+            def ComputeEffortRequired(df, win_factor = 1.10, coefficient_2024 = .84):
+            ### fill in missing values in these columns 
+            ### with the mean of the other values in that column
+            df.fillna({'Biden20': df['Biden20'].mean(), 
+                        'Evers18': df['Evers18'].mean(), 
+                        'Evers22': df['Evers22'].mean(),
+                        'Trump20': df['Trump20'].mean(),
+                        'ModeledIDs': 0,  # fill im missing values with 0
+                        'NewIDs': 0}, inplace=True)
             
-                        if g1 >= 0.0: g1 = win_factor
-                        else: g1 = abs(g1) + win_factor
-                    
-                        supporter_goal = row.Biden20 * g1
-                        df.at[row.Index,'SupporterGoal'] = supporter_goal
-                        
-                    [....]
-                    
-                    #Effort remaining is the support goal minus the sum of ModeledIDs and NewIDs
-                    #"Effort Remaining" is renamed to "Voter Gap"
-                    if pd.isnull(row.EffortRemaining) or row.EffortRemaining == 0:
-                        df.at[row.Index, 'EffortRemaining'] = supporter_goal - (row.ModeledIDs + row.NewIDs)
-                            
-                return df
+            supporter_goal = 0
+            growth_factor = 0.0
+            projected_growth = 0.0
+            new_ids = 0
+            
+            for row in df.itertuples():
+                # supporter goal is 110% of Biden's 2020 vote
+                supporter_goal = int(row.Biden20 * win_factor) #always 110% 
+                df.at[row.Index,'SupporterGoal'] = supporter_goal
+                
+                #growth factor will be at most 0.0, could be negative 
+                try:
+                    growth_factor = (row.Evers22 - row.Evers18) / (2.0 * row.Evers18)
+                except ZeroDivisionError:
+                    growth_factor = 0.0  #default to 110%
+                
+                # record it here, but modify as below
+                df.at[row.Index,'OffyearTrend'] = round(growth_factor, 2)
+                
+                #cap growth factor at 0.0
+                growth_factor = min(0.0, growth_factor)
+                
+                # projected growth will be at most Biden20, less if growth_factor is negative
+                projected_growth = int(row.Biden20 * (1.0 + growth_factor))
+                df.at[row.Index,'Projected'] = projected_growth
+                
+                #effort remaining is the support goal (based on 110% of Biden's 2020 vote) 
+                # minus the projected growth (based on the offyear results) and new ids
+                new_ids = row.NewIDs
+                df.at[row.Index, 'VoterGap'] = supporter_goal - (projected_growth + new_ids)
+            
+                df.at[row.Index,  'SupporterIDGoal'] = 2 *(supporter_goal - projected_growth)
+                
+            df.fillna({'SupporterIDGoal': df['SupporterIDGoal'].mean()}, inplace=True)   
+            df['SupporterIDGoal'] = df['SupporterIDGoal'].astype(int)      
+            return df
             
             </code></pre>    
         </div>
         <div class = "content">
             <h2>Current Version Changes:</h2>
+            <h4>Version of 9/19/24</h4>
+            <p><ul>
+                <li>The "offyear growth factor" ((Evers22 - Evers18)/(2*Evers18)) is always less than or equal to zero</li>
+                <li>"Projected growth" is Biden20 * (1.0 + growth factor). It is at the most Biden20, or more if growth factor is negative</li>
+                <li>The "Voter Gap" is 110% of Biden's 2020 vote minus the sum of "Projected growth" and "New IDs"</li>
+                <li>The "Supporter ID Goal" is 2 times the "Voter Gap"</li>
+                <li>The color bar on the images now maps this new "Supporter Goal" metric.</li>
+                <li>The range of the color bar is capped at the maximum of the "Suporter Goal" metric across all turfs.</li>
+                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
+                    <img src="./static_image/Billboard_rev-5.png"> 
+                </div>  
+            </ul></p>
             <h4>Version of 9/15/24</h4>
             <p><ul>
                 <li>"Supporter Goal" is 110% of Biden's 2020 vote plus half the loss, if any, from (Evers22 - Evers18)/Evers18. </li>
@@ -81,17 +102,6 @@
                     <img src="./static_image/Billboard_rev-3.png"> 
                 </div>  
                 <li>Votes for Trump are added to billoboard.</li>      
-            </ul></p>
-
-            <h4>Version of 8/3/24</h4>
-            <p><ul>
-                <li>Updated the "Effort Remaining" metric per our conversation of 8/2/24.</li>
-                <li>Billboard is updated to display new "Effort remaining to goal" information.
-                    <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
-                        <img src="./static_image/Billboard_rev-2.png"> 
-                    </div>           
-                </li>
-                <li>Colorbars for each turf are capped at "Effort remaining to goal" = 900 voters for all turfs. </li>
             </ul></p>
         </div>
         <div class = 'content'>
