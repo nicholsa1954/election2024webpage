@@ -32,32 +32,24 @@
                 new_ids = 0
                 
                 for row in df.itertuples():
-                    ## If the trend in offyear elections is positive we give it a 50% weight
-                    ## in the computation below.  If negative we give it no weight. 
+                    # supporter goal is 110% of Biden's 2020 vote
+                    win_factor = 1.1
+                    supporter_goal = int(row.Biden20 * win_factor) #always 110% 
+                    df.at[row.Index,'SupporterGoal'] = supporter_goal
+                    
+                    #growth factor will be at most 0.0, could be negative 
                     try:
-                        evers_delta = (row.Evers22 - row.Evers18)
-                        if evers_delta > 0:
-                            growth_factor =  evers_delta / (2.0 * row.Evers18)
-                        else:
-                            growth_factor =  evers_delta / (row.Evers18)
+                        growth_factor = (row.Evers22 - row.Evers18) / (2.0 * row.Evers18)
                     except ZeroDivisionError:
                         growth_factor = 0.0  
                         
-                    ## If the growth factor is positive we set a higher bar for the win number
-                    ## Note that growth factor is no longer capped at 0, as it was before
-                    if growth_factor > 0.0:
-                        win_factor = 1.15
-                    else:
-                        win_factor = 1.1
-                        
-                    ## The supporter goal is 115% of Biden's 2020 vote if trend in governor elections
-                    ## is positive, else supporter goal is 110% of Biden's 2020 vote
-                    supporter_goal = int(row.Biden20 * win_factor) 
-                    df.at[row.Index,'SupporterGoal'] = supporter_goal    
-                    
+                    # record it, but modify as below
                     df.at[row.Index,'OffyearTrend'] = round(growth_factor, 2)
                     
-                    ## Projected growth is Biden20 x growth_factor
+                    #cap growth factor at 0.0
+                    growth_factor = min(0.0, growth_factor)
+                    
+                    # projected growth will be at most Biden20, less if growth_factor is negative
                     projected_growth = int(row.Biden20 * (1.0 + growth_factor))
                     df.at[row.Index,'Projected'] = projected_growth
                     
@@ -74,7 +66,7 @@
                     
                     df.at[row.Index,  'SupporterIDGoal'] = support_id_goal
                     
-                    df.at[row.Index, 'PctGoalRemaining'] = 1.0 - round( new_ids/ support_id_goal, 2)
+                    df.at[row.Index, 'PctGoalRemaining'] = round(1.0 - ( new_ids / support_id_goal), 2)
                     
                 df.fillna({'EffortRemaining': df['EffortRemaining'].mean()}, inplace = True)
                 df.fillna({'SupporterIDGoal': df['SupporterIDGoal'].mean()}, inplace=True)   
@@ -82,13 +74,15 @@
                 df['SupporterIDGoal'] = df['SupporterIDGoal'].astype(int)  
                 return df
             
+            
             </code></pre>    
         </div>
         <div class = "content">
             <h2>Current Version Changes:</h2>
-            <h4>Version of 10/18/24</h4>
+            <h4>Version of 10/18/24 3:00 PM</h4>
             <p><ul> 
-                <li>The algorithm for computing the support goal, supporter ID goal, is changed from the previous version.  It now uses the percentage remaining to the supporter ID goal to color the maps.</li>
+                <li>The algorithm for computing the support goal, supporter ID goal, is restored to the 9/26/24 version.</li>
+                <li>It now uses the percentage remaining to the supporter ID goal to color the maps.</li>
                 <li>The billboard is edited, see the image below.</li> 
                 <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
                     <img src="./static_image/Billboard_rev-7.png"> 
