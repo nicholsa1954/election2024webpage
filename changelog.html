@@ -33,8 +33,8 @@
                 
                 for row in df.itertuples():
                     # supporter goal is 110% of Biden's 2020 vote
-                    win_factor = 1.1
-                    supporter_goal = int(row.Biden20 * win_factor) #always 110% 
+                    win_factor = 1.2
+                    supporter_goal = int(row.Biden20 * win_factor) #always 120% 
                     df.at[row.Index,'SupporterGoal'] = supporter_goal
                     
                     #growth factor will be at most 0.0, could be negative 
@@ -79,6 +79,16 @@
         </div>
         <div class = "content">
             <h2>Current Version Changes:</h2>
+            <h4>Version of 10/18/24 8:00 PM</h4>
+            <p><ul> 
+                <li>The algorithm for computing the support goal, supporter ID goal, is restored to the 9/26/24 version.</li>
+                <li>The supporter goal is 120% of Biden's 2020 vote.</li>
+                <li>It now uses the percentage remaining to the supporter ID goal to color the maps.</li>
+                <li>The billboard is edited, see the image below.</li> 
+                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
+                    <img src="./static_image/Billboard_rev-8.png"> 
+                </div>  
+            </ul></p>
             <h4>Version of 10/18/24 3:00 PM</h4>
             <p><ul> 
                 <li>The algorithm for computing the support goal, supporter ID goal, is restored to the 9/26/24 version.</li>
