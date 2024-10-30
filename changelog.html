@@ -11,74 +11,18 @@
         <h1>Changes in the Current Version of the Webpage</h1>
     </header>
     <main>
-        <div class="content">
-            <h2>The "Effort Remaining" Metric</h2>
-            <h4>Computing the "Effort Remaining":</h4>
-            <pre><code>
-                def ComputeEffortRequired(df):
-                ### Fill in missing values in these columns 
-                ### with the mean of the other values in that column
-                df.fillna({'Biden20': df['Biden20'].mean(), 
-                    'Evers18': df['Evers18'].mean(), 
-                    'Evers22': df['Evers22'].mean(),
-                    'Trump20': df['Trump20'].mean(),
-                    'Total20': df['Total20'].mean(),
-                    'ModeledIDs': 0,  # fill im missing values with 0
-                    'NewIDs': 0}, inplace=True)
-                
-                supporter_goal = 0
-                growth_factor = 0.0
-                projected_growth = 0.0
-                new_ids = 0
-                
-                for row in df.itertuples():
-                    # supporter goal is 110% of Biden's 2020 vote
-                    win_factor = 1.2
-                    supporter_goal = int(row.Biden20 * win_factor) #always 120% 
-                    df.at[row.Index,'SupporterGoal'] = supporter_goal
-                    
-                    #growth factor will be at most 0.0, could be negative 
-                    try:
-                        growth_factor = (row.Evers22 - row.Evers18) / (2.0 * row.Evers18)
-                    except ZeroDivisionError:
-                        growth_factor = 0.0  
-                        
-                    # record it, but modify as below
-                    df.at[row.Index,'OffyearTrend'] = round(growth_factor, 2)
-                    
-                    #cap growth factor at 0.0
-                    growth_factor = min(0.0, growth_factor)
-                    
-                    # projected growth will be at most Biden20, less if growth_factor is negative
-                    projected_growth = int(row.Biden20 * (1.0 + growth_factor))
-                    df.at[row.Index,'Projected'] = projected_growth
-                    
-                    ## Effort remaining is the support goal (based on  Biden's 2020 vote x the win_factor) 
-                    ## minus the projected growth (based on Biden's 2020 vote and the offyear results) 
-                    ## and the new ids collected on the doors.
-                    new_ids = row.NewIDs
-                    effort_remaining = supporter_goal - (projected_growth + new_ids)
-            
-                    df.at[row.Index, 'EffortRemaining'] = effort_remaining
-                
-                    ## Prevent division by zero
-                    support_id_goal = max( 2 *(supporter_goal - projected_growth), 1)
-                    
-                    df.at[row.Index,  'SupporterIDGoal'] = support_id_goal
-                    
-                    df.at[row.Index, 'PctGoalRemaining'] = round(1.0 - ( new_ids / support_id_goal), 2)
-                    
-                df.fillna({'EffortRemaining': df['EffortRemaining'].mean()}, inplace = True)
-                df.fillna({'SupporterIDGoal': df['SupporterIDGoal'].mean()}, inplace=True)   
-                df.fillna({'PctGoalRemaining': df['PctGoalRemaining'].mean()}, inplace = True)
-                df['SupporterIDGoal'] = df['SupporterIDGoal'].astype(int)  
-                return df
-            
-            
-            </code></pre>     
-        </div>
         <div class = "content">
-            <h2>Current Version Changes:</h2>
+
+            <h4>Version of 10/30/24 9:00 AM</h4>
+            <p><ul> 
+                <li>Images are colormapped by percentage completed rather than percentage remaining.</li>
+                <li>Percentage completed is is expressed as a percentage, by dividing column T ("#contacts done") by column S ("#goal") of the spreadsheet "SOTV Turf Assignments"</li>
+                <li>A new colorbar is used.</li>
+                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
+                    <img src="./static_image/Billboard_rev-10.png"> 
+                </div>  
+            </ul></p>
+
             <h4>Version of 10/28/24 9:00 AM</h4>
             <p><ul> 
                 <li>The algorithm for computing the support goal, supporter ID goal, etc. is unchanged.</li>
@@ -109,43 +53,8 @@
                     <img src="./static_image/Billboard_rev-7.png"> 
                 </div>  
             </ul></p>
-            <h4>Version of 9/26/24</h4>
-            <p><ul>
-                <li>The algorithm for computing the support goal, supporter ID goal, voter gap, and projected values is unchanged from the previous version.</li>
-                <li>The billboard is edited, see the image below.</li>      
-                <!-- <li>The two turfs for the Fox River Valley (Outagamie County and Winnebago County) are combined.</li> -->
-                <li>The color bar is changed to map the Supporter ID Goal using the turf rather than the whole state as a basis. The range of the color bar is [0... max of Supporter ID Goal
-                     in the turf]. For each map there should be at least one ward colored nearly opaque black and at least one ward colored nearly transparent white, with the meaning 
-                    of the colors expressed in the range of values shown on the color bar to the right of the image.</li>
+ 
 
-                <!-- <li></li> -->
-                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
-                    <img src="./static_image/Billboard_rev-6.png"> 
-                </div>  
-            </ul></p>
-
-            <h4>Version of 9/19/24</h4>
-            <p><ul>
-                <li>The "offyear growth factor" ((Evers22 - Evers18)/(2*Evers18)) is always less than or equal to zero</li>
-                <li>"Projected growth" is Biden20 * (1.0 + growth factor). It is at the most Biden20, or more if growth factor is negative</li>
-                <li>The "Voter Gap" is 110% of Biden's 2020 vote minus the sum of "Projected growth" and "New IDs"</li>
-                <li>The "Supporter ID Goal" is 2 times the "Voter Gap"</li>
-                <li>The color bar on the images now maps this new "Supporter Goal" metric.</li>
-                <li>The range of the color bar is capped at the maximum of the "Suporter Goal" metric across all turfs.</li>
-                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
-                    <img src="./static_image/Billboard_rev-5.png"> 
-                </div>  
-            </ul></p>
-            <h4>Version of 9/15/24</h4>
-            <p><ul>
-                <li>"Supporter Goal" is 110% of Biden's 2020 vote plus half the loss, if any, from (Evers22 - Evers18)/Evers18. </li>
-                <li>"Effort Remaining" is "SupporterGoal" minus the sum of "ModeledIDs" and "NewIDs".</li>
-                <li>"Effort Remaining" is renamed to "Voter Gap".</li>
-                <li>Color bars on the map show the voter gap, clamped in the range [0.0, 900].</li>
-                <div class="image-container2"  justify-content="left" height = "500px" width = "600px" >
-                    <img src="./static_image/Billboard_rev-4.png"> 
-                </div>  
-            </ul></p>
         </div>
         <div class="'content"></div>
             <p><a href="index.html" class="back-button">Back to Homepage</a></p>
